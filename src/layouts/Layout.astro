@@ -3,10 +3,12 @@
  * Base Layout for all pages
  * Includes head, navigation, and footer
  * E6-S04: SEO Meta Tags Enhancement
+ * Week 5: GA4 Analytics Integration
  */
 
 import '../styles/global.css';
 import { type Locale } from '../lib/i18n';
+import Analytics from '../components/Analytics.astro';
 
 interface Props {
   title: string;
@@ -98,6 +100,9 @@ const ogAltLocale = locale === 'th' ? 'en_US' : 'th_TH';
 
     <!-- Structured Data Slot -->
     <slot name="head" />
+
+    <!-- Google Analytics 4 -->
+    <Analytics />
 
     <!-- Resource Hints for External Domains -->
     <link rel="dns-prefetch" href="https://static.nike.com" />

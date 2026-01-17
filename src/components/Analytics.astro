@@ -1,0 +1,75 @@
+---
+/**
+ * Google Analytics 4 Integration
+ * Week 5 Requirement: CTA click tracking
+ *
+ * Usage: Add GA_MEASUREMENT_ID to environment variables
+ * Enable by setting GA_ENABLED=true
+ */
+
+// Get GA config from environment (will be set in .env or Cloudflare env vars)
+const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
+const GA_ENABLED = import.meta.env.PUBLIC_GA_ENABLED === 'true';
+
+const shouldRenderGA = GA_ENABLED && GA_MEASUREMENT_ID;
+---
+
+{shouldRenderGA && (
+  <>
+    <!-- Google Analytics 4 -->
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
+    <script define:vars={{ GA_MEASUREMENT_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', GA_MEASUREMENT_ID, {
+        page_title: document.title,
+        page_location: window.location.href,
+      });
+
+      // Make gtag available globally for CTA tracking
+      window.gtag = gtag;
+    </script>
+
+    <!-- CTA Click Tracking Script -->
+    <script>
+      // Track CTA clicks for affiliate/buy buttons
+      document.addEventListener('DOMContentLoaded', () => {
+        // Track all CTA button clicks
+        document.querySelectorAll('.cta-button, [data-track-cta]').forEach(button => {
+          button.addEventListener('click', (e) => {
+            const target = e.currentTarget;
+            const productName = target.dataset.product || document.querySelector('h1')?.textContent || 'Unknown';
+            const ctaType = target.dataset.ctaType || 'buy_now';
+            const destination = target.href || target.dataset.destination || 'unknown';
+
+            if (window.gtag) {
+              window.gtag('event', 'cta_click', {
+                event_category: 'engagement',
+                event_label: productName,
+                cta_type: ctaType,
+                destination_url: destination,
+              });
+            }
+          });
+        });
+
+        // Track outbound links
+        document.querySelectorAll('a[target="_blank"]').forEach(link => {
+          link.addEventListener('click', () => {
+            if (window.gtag) {
+              window.gtag('event', 'outbound_click', {
+                event_category: 'outbound',
+                event_label: link.href,
+              });
+            }
+          });
+        });
+      });
+    </script>
+  </>
+)}
+
+{!shouldRenderGA && (
+  <!-- GA4 not configured. Set PUBLIC_GA_MEASUREMENT_ID and PUBLIC_GA_ENABLED=true -->
+)}
