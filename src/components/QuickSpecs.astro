@@ -1,0 +1,231 @@
+---
+/**
+ * QuickSpecs Component
+ * Displays quick specifications snapshot
+ * Based on Uma's hi-fi mockups and Figma template
+ */
+
+interface Props {
+  weight_grams?: number;
+  heel_to_toe_drop_mm?: number;
+  waterproof?: boolean;
+  waterproof_technology?: string;
+  gender_target?: string;
+  upper_material?: string;
+  outsole_material?: string;
+  category?: string;
+  price_tier?: string;
+  locale?: 'en' | 'th';
+}
+
+const {
+  weight_grams,
+  heel_to_toe_drop_mm,
+  waterproof,
+  waterproof_technology,
+  gender_target,
+  upper_material,
+  outsole_material,
+  category,
+  price_tier,
+  locale = 'en'
+} = Astro.props;
+
+// Convert grams to ounces
+const weight_oz = weight_grams ? (weight_grams / 28.35).toFixed(1) : null;
+
+// Gender display mapping
+const genderDisplay: Record<string, { th: string; en: string }> = {
+  men: { th: 'ผู้ชาย', en: "Men's" },
+  women: { th: 'ผู้หญิง', en: "Women's" },
+  unisex: { th: 'ยูนิเซ็กซ์', en: 'Unisex' },
+  youth: { th: 'เยาวชน', en: 'Youth' },
+  kids: { th: 'เด็ก', en: 'Kids' },
+  Men: { th: 'ผู้ชาย', en: "Men's" },
+  Women: { th: 'ผู้หญิง', en: "Women's" },
+  Unisex: { th: 'ยูนิเซ็กซ์', en: 'Unisex' },
+};
+
+const hasSpecs = weight_grams || heel_to_toe_drop_mm !== undefined || waterproof !== undefined || gender_target || upper_material || outsole_material;
+---
+
+<div class="quick-specs bg-gradient-to-br from-slate-50 to-gray-100 border border-slate-200 rounded-xl p-6">
+  <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900">
+    <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+    </svg>
+    {locale === 'th' ? 'ข้อมูลจำเพาะ' : 'Quick Specs'}
+  </h2>
+
+  {hasSpecs ? (
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Weight -->
+      {weight_grams && (
+        <div class="flex items-start gap-3">
+          <div class="p-2 bg-white rounded-lg shadow-sm">
+            <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/>
+              <circle cx="12" cy="12" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm text-gray-600">
+              {locale === 'th' ? 'น้ำหนัก' : 'Weight'}
+            </div>
+            <div class="font-semibold text-gray-900">
+              {weight_grams}g ({weight_oz}oz)
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Heel-to-Toe Drop -->
+      {heel_to_toe_drop_mm !== undefined && (
+        <div class="flex items-start gap-3">
+          <div class="p-2 bg-white rounded-lg shadow-sm">
+            <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm text-gray-600">
+              {locale === 'th' ? 'ความลาดเอียง' : 'Drop'}
+            </div>
+            <div class="font-semibold text-gray-900">
+              {heel_to_toe_drop_mm}mm
+              {heel_to_toe_drop_mm === 0 && (
+                <span class="ml-2 text-xs text-blue-600">
+                  ({locale === 'th' ? 'ฐานเสมอ' : 'Zero-drop'})
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Waterproof -->
+      {waterproof !== undefined && (
+        <div class="flex items-start gap-3">
+          <div class="p-2 bg-white rounded-lg shadow-sm">
+            <svg class={`h-5 w-5 ${waterproof ? 'text-blue-600' : 'text-gray-400'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm text-gray-600">
+              {locale === 'th' ? 'กันน้ำ' : 'Waterproof'}
+            </div>
+            <div class="font-semibold text-gray-900">
+              {waterproof ? (
+                <span class="text-blue-600">
+                  ✓ {locale === 'th' ? 'กันน้ำ' : 'Yes'}
+                </span>
+              ) : (
+                <span class="text-gray-500">
+                  {locale === 'th' ? 'ไม่กันน้ำ' : 'No'}
+                </span>
+              )}
+            </div>
+            {waterproof && waterproof_technology && (
+              <div class="text-xs text-gray-600 mt-0.5">
+                {waterproof_technology}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <!-- Gender Target -->
+      {gender_target && (
+        <div class="flex items-start gap-3">
+          <div class="p-2 bg-white rounded-lg shadow-sm">
+            <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm text-gray-600">
+              {locale === 'th' ? 'กลุ่มเป้าหมาย' : 'Gender'}
+            </div>
+            <div class="font-semibold text-gray-900">
+              {genderDisplay[gender_target]
+                ? (locale === 'th' ? genderDisplay[gender_target].th : genderDisplay[gender_target].en)
+                : gender_target
+              }
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Category -->
+      {category && (
+        <div class="flex items-start gap-3">
+          <div class="p-2 bg-white rounded-lg shadow-sm">
+            <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm text-gray-600">
+              {locale === 'th' ? 'ประเภท' : 'Category'}
+            </div>
+            <div class="font-semibold text-gray-900">{category}</div>
+          </div>
+        </div>
+      )}
+
+      <!-- Price Tier -->
+      {price_tier && (
+        <div class="flex items-start gap-3">
+          <div class="p-2 bg-white rounded-lg shadow-sm">
+            <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm text-gray-600">
+              {locale === 'th' ? 'ระดับราคา' : 'Price Tier'}
+            </div>
+            <div class="font-semibold text-gray-900 capitalize">{price_tier}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  ) : (
+    <p class="text-gray-500 text-center py-4">
+      {locale === 'th' ? 'ยังไม่มีข้อมูลจำเพาะ' : 'Specifications coming soon'}
+    </p>
+  )}
+
+  <!-- Materials Section -->
+  {(upper_material || outsole_material) && (
+    <div class="mt-6 pt-6 border-t border-gray-200">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">
+        {locale === 'th' ? 'วัสดุ' : 'Materials'}
+      </h3>
+      <div class="space-y-2">
+        {upper_material && (
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">
+              {locale === 'th' ? 'ส่วนบน' : 'Upper'}:
+            </span>
+            <span class="font-medium text-gray-900 text-right">
+              {upper_material}
+            </span>
+          </div>
+        )}
+        {outsole_material && (
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">
+              {locale === 'th' ? 'พื้นรองเท้า' : 'Outsole'}:
+            </span>
+            <span class="font-medium text-gray-900 text-right">
+              {outsole_material}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+</div>

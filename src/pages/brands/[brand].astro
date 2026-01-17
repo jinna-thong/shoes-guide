@@ -1,0 +1,160 @@
+---
+/**
+ * E3-S04: Individual Brand Page
+ * Shows products from a specific brand
+ * Bilingual EN/TH support with static generation
+ */
+
+import { getAllBrands, getProductsByBrand } from '../../lib/db';
+import Layout from '../../layouts/Layout.astro';
+
+// Generate static paths for all brands
+export async function getStaticPaths() {
+  const brands = await getAllBrands();
+
+  return brands.map((brand) => ({
+    params: { brand: brand.brand.toLowerCase().replace(' ', '-') },
+    props: { brandName: brand.brand }
+  }));
+}
+
+const { brand: brandSlug } = Astro.params;
+const { brandName } = Astro.props;
+
+const products = await getProductsByBrand(brandName);
+
+// Brand metadata
+const brandInfo: Record<string, { country: string; description: string }> = {
+  'Nike': {
+    country: 'USA',
+    description: 'Innovative performance footwear from the world\'s leading sports brand. Known for Air technology and athlete partnerships.'
+  },
+  'Adidas': {
+    country: 'Germany',
+    description: 'German engineering meets athletic performance. Features BOOST cushioning and sustainable materials.'
+  },
+  'ASICS': {
+    country: 'Japan',
+    description: 'Japanese craftsmanship focused on runner health. Features GEL cushioning technology for impact absorption.'
+  },
+  'New Balance': {
+    country: 'USA',
+    description: 'American heritage brand known for quality construction, wide sizes, and Fresh Foam technology.'
+  },
+  'Hoka': {
+    country: 'France',
+    description: 'Maximum cushioning pioneers. Distinctive oversized midsoles provide superior shock absorption.'
+  },
+  'Mizuno': {
+    country: 'Japan',
+    description: 'Traditional Japanese brand with Wave technology for stability and smooth transitions.'
+  }
+};
+
+const info = brandInfo[brandName] || { country: '', description: '' };
+---
+
+<Layout
+  title={brandName}
+  description={`${brandName} running shoes - ${products.length} models to compare`}
+>
+  <main class="container mx-auto px-4 py-8">
+    <!-- Brand Header -->
+    <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-8 mb-8">
+      <div class="flex items-center gap-6">
+        <!-- Brand Logo Placeholder -->
+        <div class="w-24 h-24 rounded-xl bg-white shadow-md flex items-center justify-center p-4">
+          <span class="text-4xl font-bold text-gray-700">
+            {brandName.charAt(0)}
+          </span>
+        </div>
+
+        <div>
+          <h1 class="text-4xl font-bold">{brandName}</h1>
+          <div class="flex items-center gap-4 mt-2 text-gray-600">
+            {info.country && (
+              <span class="flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {info.country}
+              </span>
+            )}
+            <span>{products.length} products</span>
+          </div>
+          {info.description && (
+            <p class="mt-3 text-gray-600 max-w-2xl">{info.description}</p>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+      <ol class="flex items-center gap-2 text-gray-500">
+        <li><a href="/" class="hover:text-blue-600">Home</a></li>
+        <li>/</li>
+        <li><a href="/brands" class="hover:text-blue-600">Brands</a></li>
+        <li>/</li>
+        <li class="text-gray-900">{brandName}</li>
+      </ol>
+    </nav>
+
+    <!-- Products Grid -->
+    {products.length > 0 ? (
+      <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products.map((product) => (
+          <a
+            href={`/products/${product.slug}`}
+            class="group block bg-white border rounded-lg overflow-hidden hover:shadow-lg hover:border-blue-300 transition"
+          >
+            <div class="bg-gray-100 p-6 flex items-center justify-center h-48">
+              {product.primary_image_url ? (
+                <img
+                  src={product.primary_image_url}
+                  alt={product.model_name}
+                  class="max-w-full max-h-full object-contain group-hover:scale-105 transition"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <div class="text-gray-400">
+                  <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-gray-500 uppercase tracking-wide">{product.brand}</p>
+              <h3 class="font-semibold mt-1 mb-2 line-clamp-2 group-hover:text-blue-600 transition">
+                {product.model_name}
+              </h3>
+              <p class="text-gray-600 text-sm">
+                {product.price_range_min && product.price_range_max
+                  ? `${product.price_range_min.toLocaleString()} - ${product.price_range_max.toLocaleString()} THB`
+                  : 'Price unavailable'}
+              </p>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="px-2 py-0.5 rounded bg-gray-100 text-xs text-gray-600">
+                  {product.category}
+                </span>
+                <span class="px-2 py-0.5 rounded bg-gray-100 text-xs text-gray-600">
+                  {product.gender_target}
+                </span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-12 text-gray-500">
+        <p>No products found for this brand.</p>
+        <a href="/brands" class="text-blue-600 hover:underline mt-2 inline-block">
+          &larr; Back to brands
+        </a>
+      </div>
+    )}
+  </main>
+</Layout>

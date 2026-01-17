@@ -1,0 +1,93 @@
+---
+/**
+ * ProductPrice Component
+ * Displays price range and CTA button
+ * Based on Uma's hi-fi mockups and Figma template
+ */
+
+interface Props {
+  price_range_min?: number | null;
+  price_range_max?: number | null;
+  official_url?: string;
+  brand?: string;
+  model_name?: string;
+  locale?: 'en' | 'th';
+}
+
+const {
+  price_range_min,
+  price_range_max,
+  official_url,
+  brand,
+  model_name,
+  locale = 'en'
+} = Astro.props;
+
+// Format price
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('th-TH').format(price);
+};
+
+const hasPrice = price_range_min && price_range_max;
+const priceDisplay = hasPrice
+  ? `฿${formatPrice(price_range_min)} - ฿${formatPrice(price_range_max)}`
+  : (locale === 'th' ? 'ราคาไม่ระบุ' : 'Price unavailable');
+---
+
+<div class="product-price bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+  <!-- Price Display -->
+  <div class="mb-4">
+    <p class="text-sm text-gray-600 mb-1">
+      {locale === 'th' ? 'ช่วงราคา' : 'Price Range'}
+    </p>
+    <p class="text-3xl font-bold text-gray-900">
+      {priceDisplay}
+    </p>
+  </div>
+
+  <!-- CTA Button -->
+  {official_url && (
+    <a
+      href={official_url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      class="cta-button block w-full bg-blue-600 hover:bg-blue-700 text-white text-center px-6 py-4 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg"
+    >
+      <span class="flex items-center justify-center gap-2">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        {locale === 'th' ? 'ดูราคาและซื้อ' : 'Check Price & Buy'}
+      </span>
+    </a>
+  )}
+
+  <!-- Alternative CTA when no URL -->
+  {!official_url && (
+    <div class="text-center py-3 bg-gray-100 rounded-lg">
+      <p class="text-sm text-gray-600">
+        {locale === 'th' ? 'ลิงก์ซื้อจะมาเร็วๆ นี้' : 'Purchase link coming soon'}
+      </p>
+    </div>
+  )}
+
+  <!-- Trust Signal -->
+  <p class="text-xs text-gray-500 text-center mt-3">
+    {locale === 'th'
+      ? 'ลิงก์ไปยังเว็บไซต์ทางการหรือร้านค้าที่น่าเชื่อถือ'
+      : 'Links to official website or trusted retailers'}
+  </p>
+</div>
+
+<style>
+  .cta-button {
+    transform: translateY(0);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  .cta-button:hover {
+    transform: translateY(-2px);
+  }
+  .cta-button:active {
+    transform: scale(0.98);
+  }
+</style>

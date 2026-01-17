@@ -1,0 +1,335 @@
+---
+/**
+ * Dynamic Product Pages
+ * Generates static pages for all products from database
+ * E3-S02: Product Page Templates
+ * E6-S04: SEO Enhancement with JSON-LD Structured Data
+ *
+ * UPDATED: Integrated Uma's Figma design template components
+ */
+
+import { getAllProducts, getProductBySlug, type Product } from '../../lib/db';
+import { getLocalizedContent, t, type Locale } from '../../lib/i18n';
+import Layout from '../../layouts/Layout.astro';
+import VerdictBlock from '../../components/VerdictBlock.astro';
+import QuickSpecs from '../../components/QuickSpecs.astro';
+import ProsCons from '../../components/ProsCons.astro';
+import RatingDimensions from '../../components/RatingDimensions.astro';
+import ProductPrice from '../../components/ProductPrice.astro';
+
+export async function getStaticPaths() {
+  const products = await getAllProducts();
+
+  // Generate English routes (Thai routes will be in /th/products/[slug].astro)
+  return products.map((product) => ({
+    params: { slug: product.slug },
+    props: { product, locale: 'en' as Locale }
+  }));
+}
+
+const { product, locale } = Astro.props;
+
+const title = `${product.brand} ${product.model_name}`;
+const description = getLocalizedContent(
+  product.description_en,
+  product.description_th,
+  locale
+);
+const priceRange = product.price_range_min && product.price_range_max
+  ? `${product.price_range_min.toLocaleString()} - ${product.price_range_max.toLocaleString()} THB`
+  : 'Price unavailable';
+
+// Site URL for structured data
+const siteUrl = 'https://shoes.guide';
+const productUrl = `${siteUrl}/products/${product.slug}/`;
+const productImage = product.primary_image_url || `${siteUrl}/og-default.png`;
+
+// Product JSON-LD Structured Data
+const productJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": `${product.brand} ${product.model_name}`,
+  "description": description || `${product.brand} ${product.model_name} running shoes`,
+  "image": productImage,
+  "brand": {
+    "@type": "Brand",
+    "name": product.brand
+  },
+  "category": `${product.category} Running Shoes`,
+  ...(product.price_range_min && product.price_range_max ? {
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "THB",
+      "lowPrice": product.price_range_min,
+      "highPrice": product.price_range_max,
+      "offerCount": 1,
+      "availability": "https://schema.org/InStock"
+    }
+  } : {}),
+  "url": productUrl
+};
+
+// BreadcrumbList JSON-LD Structured Data
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": locale === 'th' ? "หน้าแรก" : "Home",
+      "item": locale === 'th' ? `${siteUrl}/th/` : `${siteUrl}/`
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": locale === 'th' ? "ผลิตภัณฑ์" : "Products",
+      "item": locale === 'th' ? `${siteUrl}/th/products/` : `${siteUrl}/products/`
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": `${product.brand} ${product.model_name}`
+    }
+  ]
+};
+---
+
+<Layout
+  title={title}
+  description={description}
+  locale={locale}
+  type="product"
+  image={productImage}
+>
+  <!-- JSON-LD Structured Data -->
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(productJsonLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
+  </Fragment>
+
+  <main class="min-h-screen bg-gray-50">
+    <!-- Breadcrumb -->
+    <div class="bg-white border-b">
+      <div class="container mx-auto max-w-7xl px-4 py-3">
+        <nav class="text-sm">
+          <ol class="flex items-center gap-2 text-gray-500">
+            <li>
+              <a href={locale === 'th' ? '/th' : '/'} class="hover:text-blue-600 transition">
+                {t('nav.home', locale)}
+              </a>
+            </li>
+            <li>/</li>
+            <li>
+              <a href={locale === 'th' ? '/th/products' : '/products'} class="hover:text-blue-600 transition">
+                {t('nav.products', locale)}
+              </a>
+            </li>
+            <li>/</li>
+            <li class="text-gray-900">{product.brand}</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <div class="container mx-auto max-w-7xl px-4 py-8">
+      <!-- Product Header with Badges -->
+      <div class="mb-8">
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium uppercase tracking-wide">
+            {product.gender_target}
+          </span>
+          <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium uppercase tracking-wide">
+            {product.category}
+          </span>
+          <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium capitalize">
+            {product.price_tier}
+          </span>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+          {product.brand} {product.model_name}
+        </h1>
+        {description && (
+          <p class="text-lg text-gray-600 max-w-3xl">
+            {description}
+          </p>
+        )}
+      </div>
+
+      <!-- Two-Column Layout (Desktop) -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <!-- Left Column: Image + Content (3/5) -->
+        <div class="lg:col-span-3 space-y-8">
+          <!-- Hero Image -->
+          <div class="bg-white rounded-xl overflow-hidden shadow-lg">
+            <div class="aspect-square bg-gray-100 flex items-center justify-center p-8">
+              {product.primary_image_url ? (
+                <img
+                  src={product.primary_image_url}
+                  alt={title}
+                  class="max-w-full max-h-full object-contain"
+                  loading="eager"
+                  decoding="async"
+                  fetchpriority="high"
+                />
+              ) : (
+                <div class="text-gray-400 text-center">
+                  <svg class="w-32 h-32 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p class="mt-4 text-sm">
+                    {locale === 'th' ? 'รูปภาพจะมาเร็วๆ นี้' : 'Image coming soon'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <!-- Verdict Block -->
+          <VerdictBlock
+            verdict_th={product.verdict_th}
+            verdict_en={product.verdict_en}
+            editor_rating_overall={product.editor_rating_overall}
+            best_for_th={product.best_for_th}
+            best_for_en={product.best_for_en}
+            locale={locale}
+          />
+
+          <!-- Pros & Cons -->
+          <div>
+            <h2 class="text-2xl font-bold mb-4 text-gray-900">
+              {locale === 'th' ? 'ข้อดี & ข้อเสีย' : 'Pros & Cons'}
+            </h2>
+            <ProsCons
+              pros_th={product.pros_th}
+              pros_en={product.pros_en}
+              cons_th={product.cons_th}
+              cons_en={product.cons_en}
+              locale={locale}
+            />
+          </div>
+
+          <!-- Best For / Not For Section -->
+          {(product.best_for_th || product.best_for_en || product.not_for_th || product.not_for_en) && (
+            <div>
+              <h2 class="text-2xl font-bold mb-4 text-gray-900">
+                {locale === 'th' ? 'การใช้งาน' : 'Use Cases'}
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(product.best_for_th || product.best_for_en) && (
+                  <div class="bg-emerald-50/50 border border-emerald-200 rounded-xl p-6">
+                    <h3 class="font-bold text-lg mb-3 text-emerald-900 flex items-center gap-2">
+                      <span class="text-emerald-600">✓</span>
+                      {locale === 'th' ? 'เหมาะสำหรับ' : 'Best For'}
+                    </h3>
+                    <p class="text-gray-800">
+                      {locale === 'th' ? product.best_for_th : product.best_for_en}
+                    </p>
+                  </div>
+                )}
+                {(product.not_for_th || product.not_for_en) && (
+                  <div class="bg-rose-50/50 border border-rose-200 rounded-xl p-6">
+                    <h3 class="font-bold text-lg mb-3 text-rose-900 flex items-center gap-2">
+                      <span class="text-rose-600">✗</span>
+                      {locale === 'th' ? 'ไม่เหมาะสำหรับ' : 'Not For'}
+                    </h3>
+                    <p class="text-gray-800">
+                      {locale === 'th' ? product.not_for_th : product.not_for_en}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <!-- Right Sidebar: Specs + Price + Ratings (2/5) -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Sticky Container -->
+          <div class="lg:sticky lg:top-4 space-y-6">
+            <!-- Price & CTA -->
+            <ProductPrice
+              price_range_min={product.price_range_min}
+              price_range_max={product.price_range_max}
+              official_url={product.official_url}
+              brand={product.brand}
+              model_name={product.model_name}
+              locale={locale}
+            />
+
+            <!-- Quick Specs -->
+            <QuickSpecs
+              weight_grams={product.weight_grams}
+              heel_to_toe_drop_mm={product.heel_to_toe_drop_mm}
+              waterproof={product.waterproof}
+              waterproof_technology={product.waterproof_technology}
+              gender_target={product.gender_target}
+              upper_material={product.upper_material}
+              outsole_material={product.outsole_material}
+              category={product.category}
+              price_tier={product.price_tier}
+              locale={locale}
+            />
+
+            <!-- Rating Dimensions -->
+            <RatingDimensions
+              dimensions={product.editor_rating_dimensions}
+              overall_rating={product.editor_rating_overall}
+              locale={locale}
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Full Specifications Section -->
+      <section class="mt-12">
+        <h2 class="text-2xl font-bold mb-6 text-gray-900">
+          {locale === 'th' ? 'ข้อมูลจำเพาะทั้งหมด' : 'Full Specifications'}
+        </h2>
+        <div class="bg-white border rounded-xl p-6">
+          <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="py-3 border-b border-gray-100">
+              <dt class="text-sm text-gray-500">Product ID</dt>
+              <dd class="font-medium text-gray-900">{product.product_id.substring(0, 8)}</dd>
+            </div>
+            <div class="py-3 border-b border-gray-100">
+              <dt class="text-sm text-gray-500">Brand</dt>
+              <dd class="font-medium text-gray-900">{product.brand}</dd>
+            </div>
+            <div class="py-3 border-b border-gray-100">
+              <dt class="text-sm text-gray-500">Model</dt>
+              <dd class="font-medium text-gray-900">{product.model_name}</dd>
+            </div>
+            <div class="py-3 border-b border-gray-100">
+              <dt class="text-sm text-gray-500">Gender</dt>
+              <dd class="font-medium text-gray-900">{product.gender_target}</dd>
+            </div>
+            <div class="py-3 border-b border-gray-100">
+              <dt class="text-sm text-gray-500">Category</dt>
+              <dd class="font-medium text-gray-900">{product.category}</dd>
+            </div>
+            <div class="py-3 border-b border-gray-100">
+              <dt class="text-sm text-gray-500">Price Tier</dt>
+              <dd class="font-medium text-gray-900 capitalize">{product.price_tier}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- Language Toggle -->
+      <div class="mt-12 pt-8 border-t text-center">
+        <p class="text-sm text-gray-600">
+          {locale === 'en' ? (
+            <a href={`/th/products/${product.slug}`} class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+              <span>🇹🇭</span> ดูเป็นภาษาไทย (View in Thai)
+            </a>
+          ) : (
+            <a href={`/products/${product.slug}`} class="inline-flex items-center gap-2 text-blue-600 hover:underline">
+              <span>🇬🇧</span> View in English
+            </a>
+          )}
+        </p>
+      </div>
+    </div>
+  </main>
+</Layout>

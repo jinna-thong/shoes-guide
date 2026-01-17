@@ -1,0 +1,23 @@
+{
+  "name": "lens-web",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.0",
+    "@astrojs/tailwind": "^6.0.2",
+    "@tailwindcss/vite": "^4.1.18",
+    "astro": "^5.16.10",
+    "dotenv": "^17.2.3",
+    "pg": "^8.17.1",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260101.0"
+  }
+}

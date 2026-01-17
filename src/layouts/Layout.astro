@@ -1,0 +1,201 @@
+---
+/**
+ * Base Layout for all pages
+ * Includes head, navigation, and footer
+ * E6-S04: SEO Meta Tags Enhancement
+ */
+
+import '../styles/global.css';
+import { type Locale } from '../lib/i18n';
+
+interface Props {
+  title: string;
+  description?: string;
+  locale?: Locale;
+  image?: string;
+  type?: 'website' | 'product' | 'article';
+  canonical?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  locale = 'en',
+  image = '/og-default.svg',
+  type = 'website',
+  canonical,
+  noindex = false
+} = Astro.props;
+
+// Site configuration
+const siteUrl = 'https://shoes.guide';
+const siteName = 'LENS - Running Shoe Comparison';
+
+// Build full title
+const fullTitle = `${title} | ${siteName}`;
+const defaultDescription = 'Compare running shoes from top brands with expert reviews and detailed specifications.';
+
+// Build canonical URL
+const currentPath = Astro.url.pathname;
+const canonicalUrl = canonical || new URL(currentPath, siteUrl).href;
+
+// Build image URL (ensure absolute)
+const imageUrl = image.startsWith('http') ? image : new URL(image, siteUrl).href;
+
+// Build alternate language URLs for hreflang
+const altLocale = locale === 'en' ? 'th' : 'en';
+const altPath = locale === 'en'
+  ? `/th${currentPath === '/' ? '' : currentPath}`
+  : currentPath.replace(/^\/th/, '') || '/';
+const altUrl = new URL(altPath, siteUrl).href;
+const defaultUrl = new URL(currentPath.replace(/^\/th/, '') || '/', siteUrl).href;
+
+// Locale codes for og:locale
+const ogLocale = locale === 'th' ? 'th_TH' : 'en_US';
+const ogAltLocale = locale === 'th' ? 'en_US' : 'th_TH';
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Primary Meta Tags -->
+    <title>{fullTitle}</title>
+    <meta name="description" content={description || defaultDescription} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Hreflang for Bilingual Support -->
+    <link rel="alternate" hreflang={locale} href={canonicalUrl} />
+    <link rel="alternate" hreflang={altLocale} href={altUrl} />
+    <link rel="alternate" hreflang="x-default" href={defaultUrl} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description || defaultDescription} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:locale:alternate" content={ogAltLocale} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description || defaultDescription} />
+    <meta name="twitter:image" content={imageUrl} />
+
+    <!-- Structured Data Slot -->
+    <slot name="head" />
+
+    <!-- Resource Hints for External Domains -->
+    <link rel="dns-prefetch" href="https://static.nike.com" />
+    <link rel="dns-prefetch" href="https://assets.adidas.com" />
+    <link rel="dns-prefetch" href="https://images.asics.com" />
+
+    <!-- Font Loading Optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Preload critical font weight for faster LCP -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    </noscript>
+  </head>
+  <body class="font-sans antialiased">
+    <!-- Navigation -->
+    <header class="bg-white border-b sticky top-0 z-50">
+      <nav class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <a href={locale === 'th' ? '/th' : '/'} class="text-2xl font-bold text-blue-600">
+            LENS
+          </a>
+          <div class="flex gap-6">
+            <a href={locale === 'th' ? '/th/products' : '/products'} class="hover:text-blue-600">
+              {locale === 'th' ? 'ผลิตภัณฑ์' : 'Products'}
+            </a>
+            <a href={locale === 'th' ? '/th/brands' : '/brands'} class="hover:text-blue-600">
+              {locale === 'th' ? 'แบรนด์' : 'Brands'}
+            </a>
+            <a href={locale === 'th' ? '/th/compare' : '/compare'} class="hover:text-blue-600">
+              {locale === 'th' ? 'เปรียบเทียบ' : 'Compare'}
+            </a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <slot />
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 border-t mt-16">
+      <div class="container mx-auto px-4 py-8">
+        <div class="grid md:grid-cols-4 gap-8">
+          <div>
+            <h3 class="font-bold text-lg mb-4">LENS</h3>
+            <p class="text-sm text-gray-600">
+              {locale === 'th'
+                ? 'เปรียบเทียบรองเท้าวิ่งจากแบรนด์ชั้นนำ'
+                : 'Compare running shoes from top brands'}
+            </p>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-4">{locale === 'th' ? 'ผลิตภัณฑ์' : 'Products'}</h4>
+            <ul class="text-sm text-gray-600 space-y-2">
+              <li><a href={locale === 'th' ? '/th/products' : '/products'} class="hover:text-blue-600">
+                {locale === 'th' ? 'รองเท้าวิ่งทั้งหมด' : 'All Running Shoes'}
+              </a></li>
+              <li><a href={locale === 'th' ? '/th/brands' : '/brands'} class="hover:text-blue-600">
+                {locale === 'th' ? 'แบรนด์' : 'Brands'}
+              </a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-4">{locale === 'th' ? 'เกี่ยวกับ' : 'About'}</h4>
+            <ul class="text-sm text-gray-600 space-y-2">
+              <li><a href="#" class="hover:text-blue-600">
+                {locale === 'th' ? 'เกี่ยวกับเรา' : 'About Us'}
+              </a></li>
+              <li><a href="#" class="hover:text-blue-600">
+                {locale === 'th' ? 'ติดต่อ' : 'Contact'}
+              </a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-4">{locale === 'th' ? 'ภาษา' : 'Language'}</h4>
+            <ul class="text-sm text-gray-600 space-y-2">
+              <li><a href="/" class="hover:text-blue-600">🇬🇧 English</a></li>
+              <li><a href="/th" class="hover:text-blue-600">🇹🇭 ภาษาไทย</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-8 pt-8 border-t text-center text-sm text-gray-600">
+          <p>&copy; 2026 LENS. Built with Astro.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+</style>

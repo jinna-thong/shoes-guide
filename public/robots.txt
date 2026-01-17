@@ -1,0 +1,31 @@
+# robots.txt for shoes.guide
+# https://shoes.guide
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://shoes.guide/sitemap-index.xml
+
+# Block build artifacts and internal paths
+Disallow: /_astro/
+Disallow: /api/
+
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /

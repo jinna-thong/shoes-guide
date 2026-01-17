@@ -1,0 +1,9 @@
+# Cloudflare Pages Redirects
+
+# Redirect old URLs (if any)
+# /old-path /new-path 301
+
+# Force HTTPS (handled by Cloudflare automatically)
+
+# SPA fallback (not needed for static site, but kept for reference)
+# /* /index.html 200

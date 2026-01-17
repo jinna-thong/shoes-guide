@@ -1,0 +1,117 @@
+---
+/**
+ * E3-S04: Brands Hub Page
+ * Lists all brands with product counts
+ * Bilingual EN/TH support
+ */
+
+import { getAllBrands } from '../../lib/db';
+import Layout from '../../layouts/Layout.astro';
+
+const brands = await getAllBrands();
+
+// Brand metadata for display
+const brandInfo: Record<string, { logo?: string; country: string; description: string }> = {
+  'Nike': {
+    country: 'USA',
+    description: 'Innovative performance footwear from the world\'s leading sports brand'
+  },
+  'Adidas': {
+    country: 'Germany',
+    description: 'German engineering meets athletic performance with BOOST technology'
+  },
+  'ASICS': {
+    country: 'Japan',
+    description: 'Japanese craftsmanship focused on runner health and GEL cushioning'
+  },
+  'New Balance': {
+    country: 'USA',
+    description: 'American heritage brand known for quality construction and wide sizes'
+  },
+  'Hoka': {
+    country: 'France',
+    description: 'Maximum cushioning pioneers with distinctive oversized midsoles'
+  },
+  'Mizuno': {
+    country: 'Japan',
+    description: 'Traditional Japanese brand with Wave technology for stability'
+  }
+};
+
+const totalProducts = brands.reduce((sum, b) => sum + b.product_count, 0);
+---
+
+<Layout title="Brands" description="Explore running shoes from top brands">
+  <main class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold mb-4">Running Shoe Brands</h1>
+      <p class="text-gray-600">
+        {brands.length} brands with {totalProducts} products to compare
+      </p>
+    </div>
+
+    <!-- Brand Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {brands.map((brand) => {
+        const info = brandInfo[brand.brand] || { country: '', description: '' };
+        return (
+          <a
+            href={`/brands/${encodeURIComponent(brand.brand.toLowerCase().replace(' ', '-'))}`}
+            class="group block bg-white border rounded-xl overflow-hidden hover:shadow-lg hover:border-blue-300 transition"
+          >
+            <!-- Brand Header -->
+            <div class="p-6 border-b bg-gray-50">
+              <div class="flex items-center gap-4">
+                <!-- Brand Logo Placeholder -->
+                <div class="w-16 h-16 rounded-lg bg-white border flex items-center justify-center p-2">
+                  <span class="text-2xl font-bold text-gray-700">
+                    {brand.brand.charAt(0)}
+                  </span>
+                </div>
+
+                <div class="flex-1">
+                  <h3 class="text-xl font-bold group-hover:text-blue-600 transition">
+                    {brand.brand}
+                  </h3>
+                  {info.country && (
+                    <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {info.country}
+                    </p>
+                  )}
+                </div>
+
+                <!-- Arrow -->
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Brand Info -->
+            <div class="p-6">
+              {info.description && (
+                <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                  {info.description}
+                </p>
+              )}
+
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-500">
+                  {brand.product_count} products
+                </span>
+                <span class="text-sm text-blue-600 group-hover:underline">
+                  View all &rarr;
+                </span>
+              </div>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </main>
+</Layout>

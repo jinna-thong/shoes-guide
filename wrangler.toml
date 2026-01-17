@@ -1,0 +1,30 @@
+# Cloudflare Pages Configuration
+# shoes.guide Static Site Deployment
+
+name = "shoes-guide"
+account_id = "2829ca13abeb7d12ec7a977d73384fcc"
+compatibility_date = "2026-01-01"
+
+[site]
+bucket = "./dist"
+
+# Pages-specific configuration
+pages_build_output_dir = "dist"
+
+# D1 Database (User Engagement)
+[[d1_databases]]
+binding = "DB"
+database_name = "shoes-engagement"
+database_id = "094fdb84-053a-4329-8937-78d731b5f02b"
+
+# R2 Bucket (Media Storage) - Enable R2 in dashboard first
+# [[r2_buckets]]
+# binding = "MEDIA"
+# bucket_name = "shoes-media"
+
+# Environment variables
+[vars]
+SITE_NAME = "shoes.guide"
+SITE_DOMAIN = "shoes.guide"
+DEFAULT_LOCALE = "en"
+SUPPORTED_LOCALES = "en,th"

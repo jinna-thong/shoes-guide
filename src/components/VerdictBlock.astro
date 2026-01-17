@@ -1,0 +1,98 @@
+---
+/**
+ * VerdictBlock Component
+ * Displays editor verdict with rating and best-for summary
+ * Based on Uma's hi-fi mockups and Figma template
+ */
+
+interface Props {
+  verdict_th?: string;
+  verdict_en?: string;
+  editor_rating_overall?: number;
+  best_for_th?: string;
+  best_for_en?: string;
+  locale?: 'en' | 'th';
+}
+
+const {
+  verdict_th,
+  verdict_en,
+  editor_rating_overall,
+  best_for_th,
+  best_for_en,
+  locale = 'en'
+} = Astro.props;
+
+const verdict = locale === 'th' ? verdict_th : verdict_en;
+const bestFor = locale === 'th' ? best_for_th : best_for_en;
+const hasContent = verdict || editor_rating_overall;
+
+// Generate star display
+const fullStars = editor_rating_overall ? Math.floor(editor_rating_overall) : 0;
+const hasHalfStar = editor_rating_overall ? (editor_rating_overall % 1) >= 0.5 : false;
+const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+---
+
+{hasContent ? (
+  <div class="verdict-block bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 space-y-4">
+    <!-- Editor Rating -->
+    {editor_rating_overall && (
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1 bg-white px-4 py-2 rounded-full shadow-sm">
+          <svg class="h-5 w-5 fill-amber-400 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          <span class="text-2xl font-bold text-gray-900">{editor_rating_overall.toFixed(1)}</span>
+          <span class="text-sm text-gray-600">/5.0</span>
+        </div>
+        <div class="text-sm text-gray-600">
+          {locale === 'th' ? 'คะแนนจากผู้เชี่ยวชาญ' : 'Editor Rating'}
+        </div>
+      </div>
+    )}
+
+    <!-- Verdict Text -->
+    {verdict && (
+      <div>
+        <h3 class="font-bold text-lg mb-2 text-gray-900">
+          {locale === 'th' ? 'สรุป' : 'Verdict'}
+        </h3>
+        <p class="text-gray-800 leading-relaxed italic">
+          "{verdict}"
+        </p>
+      </div>
+    )}
+
+    <!-- Best For -->
+    {bestFor && (
+      <div class="bg-white/80 rounded-lg p-4 border border-blue-200">
+        <h4 class="font-semibold text-sm mb-2 text-gray-700 uppercase tracking-wide">
+          {locale === 'th' ? 'เหมาะสำหรับ' : 'Best For'}
+        </h4>
+        <p class="text-gray-800">{bestFor}</p>
+      </div>
+    )}
+  </div>
+) : (
+  <!-- Placeholder when no editorial content -->
+  <div class="verdict-block bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center">
+    <div class="text-4xl mb-4">💬</div>
+    <h3 class="font-semibold text-gray-700 mb-2">
+      {locale === 'th' ? 'กำลังรีวิว' : 'Review Coming Soon'}
+    </h3>
+    <p class="text-sm text-gray-600">
+      {locale === 'th'
+        ? 'เรากำลังทดสอบสินค้านี้ ความเห็นจากผู้เชี่ยวชาญจะมาเร็วๆ นี้'
+        : 'We are currently reviewing this product. Expert analysis coming soon!'}
+    </p>
+  </div>
+)}
+
+<style>
+  .verdict-block {
+    transition: box-shadow 0.2s ease;
+  }
+  .verdict-block:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+</style>
